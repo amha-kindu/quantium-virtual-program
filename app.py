@@ -1,36 +1,37 @@
-
-from dash import Dash, html, dcc
-import plotly.express as px
 import pandas as pd
+import plotly.express as px
+from dash import Dash, dcc, html
+from dash.dependencies import Input, Output
 
 app = Dash(__name__)
-
 df = pd.read_csv('data\daily_sales_data.csv')
 df.sort_values('date')
-colors = {
-    'background': '#111111',
-    'text': '#7FDBFF',
+
+tab_style = {
+    'borderBottom': '1px solid #d6d6d6',
+    'padding': '6px',
+    'fontWeight': 'bold'
 }
 
-fig = px.line(df, x='date', y='sales', color='region', height=650)
-
-fig.update_layout(
-    plot_bgcolor=colors['background'],
-    paper_bgcolor=colors['background'],
-    font_color=colors['text']
-)
-
-app.layout = html.Div(children=[
-    html.H1(children="Analytics of Pink Morsels", style={'textAlign':'center'}),
-    html.P(
-        children="Analysis of the behavior of Pink Morsels prices over time",
-        style={'textAlign':'center'}
-    ),
-    dcc.Graph(
-        id='example-graph',
-        figure=fig
-    )
+app.layout = html.Div([
+    html.H1(children="Pink morsel price visualizer", style={'textAlign':'center'}),
+    dcc.Tabs(id="region-graph", value='all', children=[
+        dcc.Tab(label='All', value='all'),
+        dcc.Tab(label='North', value='north'),
+        dcc.Tab(label='South', value='south'),
+        dcc.Tab(label='East', value='east'),
+        dcc.Tab(label='West', value='west'),
+    ], style=tab_style),
+    html.Div(id='tabs-content-example-graph')
 ])
+
+@app.callback(Output('tabs-content-example-graph', 'children'),
+              Input('region-graph', 'value'))
+def render_graph(tab):
+    m = df if tab=='all' else df[df['region']==tab]
+    fig = px.line(m, x='date', y='sales', height=650, width=1300)
+    return  dcc.Graph(figure = fig, id='example-graph')
+    
 
 if __name__ == '__main__':
     app.run_server(debug=True)
