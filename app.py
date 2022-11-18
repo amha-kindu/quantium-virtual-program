@@ -13,24 +13,28 @@ tab_style = {
     'fontWeight': 'bold'
 }
 
+def build_graph(df):
+    return px.line(df, x='date', y='sales', height=650, width=1300)
+
 app.layout = html.Div([
-    html.H1(children="Pink morsel price visualizer", style={'textAlign':'center'}),
-    dcc.Tabs(id="region-graph", value='all', children=[
+    html.H1(id='header', children="Pink morsel price visualizer", style={'textAlign':'center'}),
+    dcc.Tabs(id="region-picker", value='all', children=[
         dcc.Tab(label='All', value='all'),
         dcc.Tab(label='North', value='north'),
         dcc.Tab(label='South', value='south'),
         dcc.Tab(label='East', value='east'),
         dcc.Tab(label='West', value='west'),
     ], style=tab_style),
-    html.Div(id='tabs-content-example-graph')
+    html.Div(id='graph-container', children=[dcc.Graph(id='graph', figure=build_graph(df))], 
+    )
 ])
 
-@app.callback(Output('tabs-content-example-graph', 'children'),
-              Input('region-graph', 'value'))
+
+@app.callback(Output('graph-container', 'children'),
+              Input('region-picker', 'value'))
 def render_graph(tab):
     m = df if tab=='all' else df[df['region']==tab]
-    fig = px.line(m, x='date', y='sales', height=650, width=1300)
-    return  dcc.Graph(figure = fig, id='example-graph')
+    return  dcc.Graph(figure = build_graph(m), id='graph')
     
 
 if __name__ == '__main__':
